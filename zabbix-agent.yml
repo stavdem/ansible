@@ -1,0 +1,21 @@
+---
+- hosts: centos7
+  remote_user: root
+  tasks:
+  - name: install zabbix-agent
+    yum: name=zabbix-agent state=latest
+
+  - name: copy zabbix config file
+    copy: src=/etc/ansible/conf/zabbix_agentd.conf dest=/etc/zabbix/zabbix_agentd.conf seuser=system_u
+    notify:
+      - start zabbix-agent
+
+#  - name: start zabbix-agent
+#    service:
+#      name: zabbix-agent
+#      state: started
+  handlers:
+    - name: start zabbix-agent
+      service: name=zabbix-agent state=started enabled=yes
+#    command: systemctl start zabbix-agent
+...
