@@ -11,6 +11,12 @@
 
   - name: copy zabbix config file
     copy: src=/etc/ansible/conf/zabbix_agentd.conf dest=/etc/zabbix/zabbix_agentd.conf seuser=system_u
+  
+  - name: Create a symbolic link zabbix_agentd.conf  
+    file:
+      src: /etc/zabbix/zabbix_agentd.conf
+      dest: /etc/zabbix_agentd.conf
+      state: link
     notify:
       - start zabbix-agent
 
