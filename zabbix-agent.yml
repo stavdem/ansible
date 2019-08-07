@@ -1,5 +1,5 @@
 ---
-- hosts: centos7
+- hosts: apps 
   remote_user: root
 
   tasks:
@@ -8,24 +8,38 @@
 
   - name: install zabbix-agent
     yum: name=zabbix40-agent state=latest
-
+  
   - name: copy zabbix config file
     copy: src=/etc/ansible/conf/zabbix_agentd.conf dest=/etc/zabbix/zabbix_agentd.conf seuser=system_u
+    # if the config changes
+    notify: 
+      - restart zabbix-agent
   
+  - firewalld:
+      zone: public
+      permanent: yes
+      #service: zabbix-agent
+      port: 10050/tcp
+      state: enabled
+      immediate: yes
+
   - name: Create a symbolic link zabbix_agentd.conf  
     file:
       src: /etc/zabbix/zabbix_agentd.conf
       dest: /etc/zabbix_agentd.conf
       state: link
-    notify:
-      - start zabbix-agent
+      force: yes
 
-#  - name: start zabbix-agent
-#    service:
-#      name: zabbix-agent
-#      state: started
+  - name: make sure zabbix-agent is running
+    service:
+      name: zabbix-agent
+      state: started
+                                          
   handlers:
-    - name: start zabbix-agent
-      service: name=zabbix-agent state=started enabled=yes
-#    command: systemctl start zabbix-agent
+    - name: restart zabbix-agent
+      service: 
+        name: zabbix-agent
+        state: restarted
+      listen: "restart zabbix-agent services" 
+
 ...
