@@ -1,0 +1,66 @@
+---
+- hosts: px 
+  remote_user: root
+  gather_facts: false
+
+  tasks:
+  
+  - name: copy squid config file
+    copy: src=/etc/ansible/conf/squid/squid.conf dest=/etc/squid/squid.conf seuser=system_u
+    # if the config changes
+    notify: 
+      - restart squid
+
+  - name: copy file with url allowed for squid
+    copy: src=/etc/ansible/conf/squid/allowed_urls dest=/etc/squid/allowed_urls seuser=system_u
+    # if the config changes
+    notify: 
+      - restart squid
+
+  - name: copy file extended_access_group for squid
+    copy: src=/etc/ansible/conf/squid/extended_access_group dest=/etc/squid/extended_access_group seuser=system_u
+    # if the config changes
+    notify: 
+      - restart squid
+
+  - name: copy firewall ipsets
+    copy: src=/etc/ansible/conf/squid/ipsets/ dest=/etc/firewalld/ipsets/ seuser=system_u
+    notify: 
+      - restart firewall
+ 
+  - name: copy firewall zones
+    copy: src=/etc/ansible/conf/squid/zones/ dest=/etc/firewalld/zones/ seuser=system_u
+    notify:
+      - restart firewall
+
+  - name: copy services firewall
+    copy:
+      src: /etc/ansible/conf/squid/services/
+      dest: /etc/firewalld/services/
+    notify:
+      - restart firewall
+
+  - name: make sure squid is running
+    service:
+      name: squid
+      state: started
+
+  - name: make sure firewall is running
+    service:
+      name: firewalld
+      state: started
+                                          
+  handlers:
+    - name: restart squid
+      service: 
+        name: squid
+        state: restarted
+      listen: "restart squid services" 
+
+    - name: restart firewall
+      service: 
+        name: firewalld
+        state: restarted
+      listen: "restart firewall services" 
+
+...
